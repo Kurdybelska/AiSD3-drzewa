@@ -20,37 +20,35 @@ public:
 	Node node[20];
 };
 
-void dodaj_brata(Drzewo* drzewa, int k, int ostatni_wezel)
+void dodaj_brata(Drzewo* drzewa, int k, int id_brat1, int* liczba_wezlow)
 {
-	cout << "tworze brata" << endl;
+	int id_brat2 = liczba_wezlow[k] + 1;
+
+	Node* wsk_stary_brat = &drzewa[k].node[id_brat1];
+	Node* wsk_rodzic = drzewa[k].node[id_brat1].rodzic;
 
 
-	Node* wsk_stary_brat = &drzewa[k].node[ostatni_wezel];
-	Node* wsk_rodzic = drzewa[k].node[ostatni_wezel].rodzic;
+	Node* wsk_nowy_brat = &drzewa[k].node[id_brat2];
 
+	drzewa[k].node[id_brat1].brat = wsk_nowy_brat;
+	drzewa[k].node[id_brat2].rodzic = wsk_rodzic;
 
-	Node* wsk_nowy_brat = &drzewa[k].node[ostatni_wezel + 1];
-
-	drzewa[k].node[ostatni_wezel].brat = wsk_nowy_brat;
-	drzewa[k].node[ostatni_wezel + 1].rodzic = wsk_rodzic;
-
-	drzewa[k].node[ostatni_wezel + 1].klucz = ostatni_wezel + 1;
+	drzewa[k].node[id_brat2].klucz = id_brat2;
 }
 
-void dodaj_syna(Drzewo* drzewa, int k, int ostatni_wezel)
+void dodaj_syna(Drzewo* drzewa, int k, int id_rodzica)
 {
-	cout << "tworze syna" << endl;
-	cout << "syn: " << ostatni_wezel + 1 << endl;
+	int id_syna = id_rodzica + 1;
 
-	Node* wsk_syn = &drzewa[k].node[ostatni_wezel + 1];
+	Node* wsk_syn = &drzewa[k].node[id_syna];
 
-	Node* wsk_rodzic = &drzewa[k].node[ostatni_wezel];
+	Node* wsk_rodzic = &drzewa[k].node[id_rodzica];
 
-	drzewa[k].node[ostatni_wezel].syn = wsk_syn;
-	drzewa[k].node[ostatni_wezel + 1].rodzic = wsk_rodzic;
+	drzewa[k].node[id_rodzica].syn = wsk_syn;
+	drzewa[k].node[id_syna].rodzic = wsk_rodzic;
 
 
-	drzewa[k].node[ostatni_wezel + 1].klucz = ostatni_wezel + 1;
+	drzewa[k].node[id_syna].klucz = id_syna;
 }
 
 void stworz_root(Drzewo* drzewa, int k)
@@ -69,8 +67,8 @@ void wypisz(Drzewo* drzewa, int k, int* liczba_wezlow, int n)
 	cout << "wartosc: " << drzewa[k].node[ostatni_wezel].wartosc;
 	*/
 	cout << "UWAGA:" << endl;
-	cout << "liczba wezlow: " << liczba_wezlow[k];
-	for (int h = 0; h < liczba_wezlow[k]; h++)
+	cout << "liczba wezlow: " << liczba_wezlow[k] << endl;
+	for (int h = 0; h <= liczba_wezlow[k]; h++)
 	{
 		cout << drzewa[k].node[h].wartosc << " ";
 	}
@@ -87,11 +85,13 @@ int main()
 	int* ostatnia_ujemna = new int[n];
 	Drzewo* drzewa = new Drzewo[n];
 
+
 	for (int k = 0; k < n; k++)
 	{
-		liczba_wezlow[k] = 1;
-		int ostatni_wezel = 0;    //jest to ostatni utworzony wêze³
-		int wypelniacz = 0;
+		liczba_wezlow[k] = 0;
+		int aktualny = 0;   //id ostatnio stworzonego wezla
+		//int rodzic = 0;     //id rodzica
+		int wypelniacz = 1;
 		Node* wsk_rodzic;
 		Node rodzic;
 		cin >> znak;
@@ -103,41 +103,42 @@ int main()
 			{
 			case '(':
 
-				dodaj_syna(drzewa, k, ostatni_wezel);
-				if (drzewa[k].node[ostatni_wezel].wartosc == 0)
+				dodaj_syna(drzewa, k, aktualny);
+				if (drzewa[k].node[aktualny].wartosc == 0)
 				{
 					wypelniacz--;
-					drzewa[k].node[ostatni_wezel].wartosc = wypelniacz;
+					drzewa[k].node[aktualny].wartosc = wypelniacz;
 				}
+
 				liczba_wezlow[k]++;
-				ostatni_wezel++;
-				
+				aktualny = liczba_wezlow[k];
 				break;
 
 			case ',':
 
-				dodaj_brata(drzewa, k, ostatni_wezel);
+				dodaj_brata(drzewa, k, aktualny, liczba_wezlow);
 				liczba_wezlow[k]++;
-				ostatni_wezel++;
+				aktualny = liczba_wezlow[k];
 				break;
 
 			case ')':
 
 				cout << "jestem tu" << endl;
-				wsk_rodzic = drzewa[k].node[ostatni_wezel].rodzic;   //wska¿nik na rodzica ostatniego wêz³a 
+				wsk_rodzic = drzewa[k].node[aktualny].rodzic;   //wska¿nik na rodzica ostatniego wêz³a 
 				if(wsk_rodzic != nullptr) cout << "wsk rodzic" <<wsk_rodzic<< endl;
 				rodzic = *wsk_rodzic;                                //rodzic ostatniego wêz³a
-				
-				ostatni_wezel = rodzic.klucz;
+		
+				aktualny = rodzic.klucz;
+
 				break;
 
 			default:
 				//liczba = znak - 48;
 				//cin >> znak;
 				//liczba = liczba * 10 + (znak - 48);
-				drzewa[k].node[ostatni_wezel].wartosc = znak-48;
+				drzewa[k].node[aktualny].wartosc = znak-48;
 			}
-			cout << "ostatni wezel: " << ostatni_wezel << endl;
+			cout << "ostatni wezel: " << aktualny << endl;
 			cin >> znak;
 		}
 
