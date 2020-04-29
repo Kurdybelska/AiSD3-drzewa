@@ -1,177 +1,152 @@
 #include<iostream>
 #include<cstdio>
-
 using namespace std;
 
-class Node
+struct Node
 {
-public:
-	int klucz = 0;
-	int wartosc = 0;
-	Node* rodzic = nullptr;
-	Node* brat = nullptr;
-	Node* syn = nullptr;
-
+	int id;
+	int wartosc;
+	Node* rodzic;
+	Node* brat;
+	Node* syn;
 };
 
-class Drzewo
+void usun_drzewo(Node* w)
 {
-public:
-	Node node[20];
-};
-
-void dodaj_brata(Drzewo* drzewa, int k, int ostatni_wezel)
-{
-	cout << "tworze brata" << endl;
-
-
-	Node* wsk_stary_brat = &drzewa[k].node[ostatni_wezel];
-	Node* wsk_rodzic = drzewa[k].node[ostatni_wezel].rodzic;
-
-
-	Node* wsk_nowy_brat = &drzewa[k].node[ostatni_wezel + 1];
-
-	drzewa[k].node[ostatni_wezel].brat = wsk_nowy_brat;
-	drzewa[k].node[ostatni_wezel + 1].rodzic = wsk_rodzic;
-
-	drzewa[k].node[ostatni_wezel + 1].klucz = ostatni_wezel + 1;
-}
-
-void dodaj_syna(Drzewo* drzewa, int k, int ostatni_wezel)
-{
-	cout << "tworze syna" << endl;
-	cout << "syn: " << ostatni_wezel + 1 << endl;
-
-	Node* wsk_syn = &drzewa[k].node[ostatni_wezel + 1];
-
-	Node* wsk_rodzic = &drzewa[k].node[ostatni_wezel];
-
-	drzewa[k].node[ostatni_wezel].syn = wsk_syn;
-	drzewa[k].node[ostatni_wezel + 1].rodzic = wsk_rodzic;
-
-
-	drzewa[k].node[ostatni_wezel + 1].klucz = ostatni_wezel + 1;
-}
-
-void stworz_root(Drzewo* drzewa, int k)
-{
-	cout << "tworze roota" << endl;
-	drzewa[k].node[0].wartosc = 0;
-}
-
-void wypisz(Drzewo* drzewa, int k, int* liczba_wezlow, int n)
-{
-	/*
-	cout << "brat: " << drzewa[k].node[ostatni_wezel].brat;
-	cout << "klucz: " << drzewa[k].node[ostatni_wezel].klucz;
-	cout << "rodzic: " << drzewa[k].node[ostatni_wezel].rodzic;
-	cout << "syn: " << drzewa[k].node[ostatni_wezel].syn;
-	cout << "wartosc: " << drzewa[k].node[ostatni_wezel].wartosc;
-	*/
-	cout << "UWAGA:" << endl;
-	cout << "liczba wezlow: " << liczba_wezlow[k];
-	for (int h = 0; h < liczba_wezlow[k]; h++)
+	if (w)
 	{
-		cout << drzewa[k].node[h].wartosc << " ";
+		usun_drzewo(w->brat);
+		usun_drzewo(w->syn);
+		delete w;
+	}
+}
+
+
+Node* szukaj(Node* node, int id)
+{
+	if (node->id == id)return node;
+	else
+	{
+		Node* node2 = node->syn;
+		if (node2 != NULL)szukaj(node2, id);
+		node2 = node->rodzic;
+		if (node2 != NULL)szukaj(node2, id);
+	}
+}
+
+//sprawdzone, dziala
+void dodaj_syna(Node** tab_root, int k, Node* rodzic, int id_2)
+{
+	Node* syn;
+	
+	syn = new Node;
+	syn->rodzic = rodzic;
+	syn->id = id_2;
+	syn->brat = NULL;
+	syn->syn = NULL;
+	syn->wartosc = 0;
+
+	rodzic->syn = syn;
+}
+
+
+void dodaj_brata(Node** tab_root, int k, Node* brat, int id_2)
+{
+	Node* nowybrat;
+	nowybrat = new Node;
+	nowybrat->brat = NULL;
+	nowybrat->syn = NULL;
+	nowybrat->id = id_2;
+	nowybrat->wartosc = 0;
+
+	Node* root = tab_root[k];
+
+	brat->brat = nowybrat;
+	nowybrat->rodzic = brat->rodzic;
+}
+
+void stworz_root(Node** tab_root, int k)
+{
+	tab_root[k] = new Node;
+	tab_root[k]->id = 0;
+	tab_root[k]->wartosc = 0;
+	tab_root[k]->brat = NULL;
+	tab_root[k]->rodzic = NULL;
+	tab_root[k]->syn = NULL;
+}
+
+void wypisz(Node** tab_root, int k, int n)
+{
+	
+	Node* node = tab_root[k];
+	for (int k = 0; k < n; k++)
+	{
+		if (node == NULL)break;
+		cout << k << node->wartosc << endl;
+		node = node->syn;
+
 	}
 }
 
 int main()
 {
-	int liczba;
-	int n;
+	int il_drzew;
+	cin >> il_drzew;
 	char znak;
-	cin >> n;
 
-	int* liczba_wezlow = new int[n];
-	int* ostatnia_ujemna = new int[n];
-	Drzewo* drzewa = new Drzewo[n];
+	Node** tab_root = new Node * [il_drzew];
+	int* licznik = new int [il_drzew];
+	
 
-	for (int k = 0; k < n; k++)
+	for (int k = 0; k < il_drzew; k++)
 	{
-		liczba_wezlow[k] = 1;
-		int ostatni_wezel = 0;    //jest to ostatni utworzony wêze³
-		int wypelniacz = 0;
-		Node* wsk_rodzic;
-		Node rodzic;
+		licznik[k] = 1;
+		int wypelniacz = 1;
+		int flaga = 0;
+		stworz_root(tab_root, k);
+		Node* ostatni = tab_root[k];
+		
 		cin >> znak;
-
-		stworz_root(drzewa, k);
 		while (znak != ';')
 		{
 			switch (znak)
 			{
 			case '(':
-
-				dodaj_syna(drzewa, k, ostatni_wezel);
-				if (drzewa[k].node[ostatni_wezel].wartosc == 0)
+				dodaj_syna(tab_root, k, ostatni, licznik[k] + 1);
+				if (ostatni->wartosc == 0)
 				{
 					wypelniacz--;
-					drzewa[k].node[ostatni_wezel].wartosc = wypelniacz;
+					ostatni->wartosc = wypelniacz;
 				}
-				liczba_wezlow[k]++;
-				ostatni_wezel++;
-				
+				licznik[k]++;
+				ostatni = ostatni->syn;
 				break;
 
 			case ',':
-
-				dodaj_brata(drzewa, k, ostatni_wezel);
-				liczba_wezlow[k]++;
-				ostatni_wezel++;
+				dodaj_brata(tab_root, k, ostatni, licznik[k] + 1);
+				licznik[k]++;
+				ostatni = ostatni->brat;
 				break;
 
 			case ')':
-
-				cout << "jestem tu" << endl;
-				wsk_rodzic = drzewa[k].node[ostatni_wezel].rodzic;   //wska¿nik na rodzica ostatniego wêz³a 
-				if(wsk_rodzic != nullptr) cout << "wsk rodzic" <<wsk_rodzic<< endl;
-				rodzic = *wsk_rodzic;                                //rodzic ostatniego wêz³a
-				
-				ostatni_wezel = rodzic.klucz;
+				ostatni = ostatni->rodzic;
 				break;
 
 			default:
-				//liczba = znak - 48;
-				//cin >> znak;
-				//liczba = liczba * 10 + (znak - 48);
-				drzewa[k].node[ostatni_wezel].wartosc = znak-48;
+				flaga = 1;
+				int liczba = 0;
+				while (znak > 47 && znak < 58)
+				{
+					int cyfra = znak - 48;
+					liczba = liczba * 10;
+					liczba += cyfra;
+					cin >> znak;
+				}
+				ostatni->wartosc = liczba;
 			}
-			cout << "ostatni wezel: " << ostatni_wezel << endl;
-			cin >> znak;
+			if (flaga == 0)cin >> znak;
+			else flaga = 0;
 		}
-
-		ostatnia_ujemna[k] = wypelniacz;
-		wypisz(drzewa, k, liczba_wezlow, n);
+		wypisz(tab_root, k, licznik[k]);
 	}
-	
-
-	for (int k = 0; k < n-1; k++)
-	{
-		for (int h = k + 1; h < n; h++)
-		{
-			Drzewo drzewo1 = drzewa[k];
-			Drzewo drzewo2 = drzewa[h];
-			int kolumny = liczba_wezlow[k];           
-			int wiersze = liczba_wezlow[h];
-			int ujemne1 = 1  -ostatnia_ujemna[k];
-			int ujemne2 = 1 - ostatnia_ujemna[h];
-			int dodatnie1 = kolumny - ujemne1;
-			int dodatnie2 = wiersze - ujemne2;
-			
-			int** hashmapa = new int* [wiersze];
-			for (int f = 0; f < wiersze; f++)            //tworzenie hashmapy
-			{
-				hashmapa[f] = new int[kolumny];   
-			}
-
-			cout << "kolumny: " << kolumny<<endl;
-			cout << "wiersze: " << wiersze << endl;
-			cout << "ujemne1: " << ujemne1 << endl;
-			cout << "ujemne2: " << ujemne2 << endl;
-			cout << "dodatnie1: " << dodatnie1 << endl;
-			cout << "dodatnie2: " << dodatnie2 << endl;
-		}
-	}
-
 }
