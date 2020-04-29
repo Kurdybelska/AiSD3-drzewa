@@ -128,12 +128,12 @@ int main()
 	char znak;
 
 	Node** tab_root = new Node * [il_drzew];
-	int* licznik = new int [il_drzew];
+	int* dodatnie = new int [il_drzew];
 	int* ujemne = new int[il_drzew];
 
 	for (int k = 0; k < il_drzew; k++)
 	{
-		licznik[k] = 1;
+		dodatnie[k] = 0;
 		int wypelniacz = 1;
 		int flaga = 0;
 		stworz_root(tab_root, k);
@@ -145,19 +145,20 @@ int main()
 			switch (znak)
 			{
 			case '(':
-				dodaj_syna(tab_root, k, ostatni, licznik[k] + 1);
+				dodaj_syna(tab_root, k, ostatni, dodatnie[k] + 1);
 				if (ostatni->wartosc == 0)
 				{
 					wypelniacz--;
 					ostatni->wartosc = wypelniacz;
+					ostatni->id = wypelniacz;
 				}
-				licznik[k]++;
+				//licznik[k]++;
 				ostatni = ostatni->syn;
 				break;
 
 			case ',':
-				dodaj_brata(tab_root, k, ostatni, licznik[k] + 1);
-				licznik[k]++;
+				dodaj_brata(tab_root, k, ostatni, dodatnie[k] + 1);
+				//licznik[k]++;
 				ostatni = ostatni->brat;
 				break;
 
@@ -176,6 +177,7 @@ int main()
 					cin >> znak;
 				}
 				ostatni->wartosc = liczba;
+				dodatnie[k]++;
 			}
 			if (flaga == 0)cin >> znak;
 			else flaga = 0;
@@ -188,12 +190,12 @@ int main()
 	{
 		for (int h = k + 1; h < il_drzew; h++)
 		{
-			int wielkosc1 = licznik[k];
-			int wielkosc2 = licznik[h];
 			int ujemne1 = ujemne[k];
 			int ujemne2 = ujemne[h];
-			int dodatnie1 = wielkosc1 - ujemne1;
-			int dodatnie2 = wielkosc2 - ujemne2;
+			int dodatnie1 = dodatnie[k];
+			int dodatnie2 = dodatnie[h];
+			int wielkosc1 = ujemne1 + dodatnie1;
+			int wielkosc2 = ujemne2 + dodatnie2;
 
 			bool** hashmapa = new bool* [wielkosc1];
 			for (int t = 1; t < wielkosc1; t++)
@@ -201,7 +203,7 @@ int main()
 				hashmapa[t] = new bool[wielkosc2];
 			}
 
-			for (int t = 1; t < dodatnie1; t++)
+			for (int t = 1; t <= dodatnie1; t++)
 			{
 				for (int f = 0; f < dodatnie2; f++)
 				{
@@ -212,17 +214,21 @@ int main()
 				}
 			}
 
-			for (int t = dodatnie1; t < wielkosc1; t++)
+			for (int t = 1; t <= dodatnie1; t++)
 			{
-				for (int f = 1; f < wielkosc2; f++)
+				for (int f = dodatnie2+1; f <= wielkosc2; f++)
 				{
-					hashmapa[t][f] = czy_polaczone(tab_root, k, t, f);
-					cout << hashmapa[t][f];
+					int id_kolumny = 1 - f + dodatnie2;
+					cout << id_kolumny << " -> " << t << ": " ;
+					hashmapa[t][f] = czy_polaczone(tab_root, h, id_kolumny, t);
+					cout << hashmapa[t][f] << endl;
+					//cout << "wiersz: " << t << "  kolumna: " << f << "  id_kolumny: " << id_kolumny << endl;
 				}
 				cout << endl;
 			}
 
-			
+			bool test = czy_polaczone(tab_root, 0, -3, -5);
+			cout << test << endl;
 
 
 		}
